@@ -1,0 +1,49 @@
+{
+  "name": "rev-ops-code-sync",
+  "displayName": "Rev-Ops Code Sync",
+  "description": "Syncs process code from the CDE to the Rev-Ops backend",
+  "version": "0.1.0",
+  "publisher": "Revature",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "rev-ops-code-sync.syncCode",
+        "title": "Sync Code to Rev-Ops"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "revops-sidebar",
+          "title": "Rev-Ops",
+          "icon": "resources/revops.svg"
+        }
+      ]
+    },
+    "views": {
+      "revops-sidebar": [
+        {
+          "type": "webview",
+          "id": "revopsCodeSync",
+          "name": "Code Sync"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
