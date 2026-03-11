@@ -20,7 +20,7 @@ export function loadConfig(): RevOpsConfig | null {
         const raw = fs.readFileSync(configPath, "utf-8");
         const parsed = JSON.parse(raw);
 
-        if (!parsed.backendUrl || !parsed.authToken || !parsed.runnerId || !parsed.userId) {
+        if (!parsed.backendUrl || !parsed.authToken || !parsed.userId) {
           console.error(`Rev-Ops config at ${configPath} missing required fields`);
           continue;
         }
