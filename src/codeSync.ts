@@ -13,8 +13,16 @@ export interface SyncResult {
 interface CodePayload {
   runner_id: string;
   user_id: string;
+  project_type: string;
   pre_process_code: string | null;
   post_process_code: string | null;
+}
+
+interface ComponentPayload {
+  runner_id: string;
+  user_id: string;
+  project_type: "component";
+  component_files: Record<string, string>;
 }
 
 function readFileIfExists(filePath: string): string | null {
@@ -43,7 +51,7 @@ function findWorkspaceRoot(): string | null {
   return null;
 }
 
-function postJson(url: string, data: CodePayload, authToken: string): Promise<SyncResult> {
+function postJson(url: string, data: CodePayload | ComponentPayload, authToken: string): Promise<SyncResult> {
   return new Promise((resolve) => {
     const body = JSON.stringify(data);
     const parsed = new URL(url);
@@ -116,8 +124,58 @@ export async function syncCode(config: RevOpsConfig): Promise<SyncResult> {
   const payload: CodePayload = {
     runner_id: config.runnerId,
     user_id: config.userId,
+    project_type: "process",
     pre_process_code: preCode,
     post_process_code: postCode,
+  };
+
+  const url = `${config.backendUrl}/api/admin/cde/sync-code`;
+  return postJson(url, payload, config.authToken);
+}
+
+function findComponentDir(): string | null {
+  const candidates = [
+    "/home/ubuntu/rev-ops-react-component-template/component",
+    path.join(process.env.HOME ?? "/root", "rev-ops-react-component-template/component"),
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(dir)) {
+      return dir;
+    }
+  }
+  return null;
+}
+
+function readComponentFiles(componentDir: string): Record<string, string> {
+  const files: Record<string, string> = {};
+  const entries = fs.readdirSync(componentDir);
+  for (const entry of entries) {
+    if (entry.endsWith(".tsx") || entry.endsWith(".ts")) {
+      const content = readFileIfExists(path.join(componentDir, entry));
+      if (content) {
+        files[entry] = content;
+      }
+    }
+  }
+  return files;
+}
+
+export async function syncComponentCode(config: RevOpsConfig): Promise<SyncResult> {
+  const componentDir = findComponentDir();
+  if (!componentDir) {
+    return { success: false, message: "Could not find component template workspace" };
+  }
+
+  const componentFiles = readComponentFiles(componentDir);
+  if (Object.keys(componentFiles).length === 0) {
+    return { success: false, message: "No .tsx or .ts files found in component/ directory" };
+  }
+
+  const payload: ComponentPayload = {
+    runner_id: config.runnerId,
+    user_id: config.userId,
+    project_type: "component",
+    component_files: componentFiles,
   };
 
   const url = `${config.backendUrl}/api/admin/cde/sync-code`;

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { loadConfig, RevOpsConfig } from "./config";
-import { syncCode, SyncResult } from "./codeSync";
+import { syncCode, syncComponentCode, SyncResult } from "./codeSync";
 
 let config: RevOpsConfig | null = null;
 let lastSyncResult: SyncResult | null = null;
@@ -36,7 +36,11 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((doc) => {
       const filePath = doc.uri.fsPath;
-      if (filePath.includes("pre_process") || filePath.includes("post_process")) {
+      if (
+        filePath.includes("pre_process") ||
+        filePath.includes("post_process") ||
+        (filePath.includes("/component/") && (filePath.endsWith(".tsx") || filePath.endsWith(".ts")))
+      ) {
         scheduleAutoSync();
       }
     })
@@ -63,7 +67,12 @@ async function handleSync() {
   // Notify sidebar that sync started
   sidebarProvider?.postMessage({ type: "syncStarted" });
 
-  const result = await syncCode(config);
+  let result: SyncResult;
+  if (config.projectType === "component") {
+    result = await syncComponentCode(config);
+  } else {
+    result = await syncCode(config);
+  }
   lastSyncResult = result;
 
   // Notify sidebar of result

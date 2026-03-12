@@ -6,6 +6,7 @@ export interface RevOpsConfig {
   authToken: string;
   runnerId: string;
   userId: string;
+  projectType: "process" | "component";
 }
 
 const CONFIG_PATHS = [
@@ -30,6 +31,7 @@ export function loadConfig(): RevOpsConfig | null {
           authToken: parsed.authToken,
           runnerId: parsed.runnerId,
           userId: parsed.userId,
+          projectType: parsed.projectType ?? "process",
         };
       }
     } catch (err) {
