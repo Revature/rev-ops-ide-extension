@@ -6,9 +6,6 @@ import { syncCode, syncComponentCode, SyncResult } from "./codeSync";
 let config: RevOpsConfig | null = null;
 let lastSyncResult: SyncResult | null = null;
 let sidebarProvider: RevOpsSidebarProvider | null = null;
-let autoSyncTimeout: NodeJS.Timeout | null = null;
-
-const AUTO_SYNC_DEBOUNCE_MS = 2000;
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("Rev-Ops Code Sync extension activating...");
@@ -32,30 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("rev-ops-code-sync.syncCode", handleSync)
   );
 
-  // Watch for file saves and auto-sync
-  context.subscriptions.push(
-    vscode.workspace.onDidSaveTextDocument((doc) => {
-      const filePath = doc.uri.fsPath;
-      if (
-        filePath.includes("pre_process") ||
-        filePath.includes("post_process") ||
-        (filePath.includes("/component/") && (filePath.endsWith(".tsx") || filePath.endsWith(".ts")))
-      ) {
-        scheduleAutoSync();
-      }
-    })
-  );
-
   console.log("Rev-Ops Code Sync extension activated");
-}
-
-function scheduleAutoSync() {
-  if (autoSyncTimeout) {
-    clearTimeout(autoSyncTimeout);
-  }
-  autoSyncTimeout = setTimeout(() => {
-    handleSync();
-  }, AUTO_SYNC_DEBOUNCE_MS);
 }
 
 async function handleSync() {
@@ -88,11 +62,7 @@ async function handleSync() {
   }
 }
 
-export function deactivate() {
-  if (autoSyncTimeout) {
-    clearTimeout(autoSyncTimeout);
-  }
-}
+export function deactivate() {}
 
 // ── Sidebar Webview Provider ────────────────────────────────────────────────
 
@@ -187,8 +157,8 @@ class RevOpsSidebarProvider implements vscode.WebviewViewProvider {
     </div>
 
     <div class="info">
-      <p>Code auto-syncs when you save <code>main.py</code> files.</p>
-      <p>Click <strong>Sync Code</strong> to manually sync.</p>
+      <p>Click <strong>Sync Code</strong> to sync your code to the platform.</p>
+      <p>Make sure to save your files before syncing.</p>
     </div>
   </div>
   <script src="${jsUri}"></script>
