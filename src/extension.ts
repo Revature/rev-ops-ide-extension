@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { loadConfig, RevOpsConfig } from "./config";
-import { syncCode, syncComponentCode, SyncResult } from "./codeSync";
+import { syncCode, syncComponentCode, syncPageCode, SyncResult } from "./codeSync";
 
 let config: RevOpsConfig | null = null;
 let lastSyncResult: SyncResult | null = null;
@@ -42,7 +42,9 @@ async function handleSync() {
   sidebarProvider?.postMessage({ type: "syncStarted" });
 
   let result: SyncResult;
-  if (config.projectType === "component") {
+  if (config.projectType === "page") {
+    result = await syncPageCode(config);
+  } else if (config.projectType === "component") {
     result = await syncComponentCode(config);
   } else {
     result = await syncCode(config);
