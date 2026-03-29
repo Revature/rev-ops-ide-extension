@@ -21,7 +21,7 @@ interface CodePayload {
 interface ComponentPayload {
   runner_id: string;
   user_id: string;
-  project_type: "component" | "page";
+  project_type: "component" | "page" | "report";
   component_files: Record<string, string>;
 }
 
@@ -211,6 +211,41 @@ export async function syncPageCode(config: RevOpsConfig): Promise<SyncResult> {
     user_id: config.userId,
     project_type: "page",
     component_files: pageFiles,
+  };
+
+  const url = `${config.backendUrl}/api/admin/cde/sync-code`;
+  return postJson(url, payload, config.authToken);
+}
+
+function findReportDir(): string | null {
+  const candidates = [
+    "/home/ubuntu/rev-ops-react-report-template/component",
+    path.join(process.env.HOME ?? "/root", "rev-ops-react-report-template/component"),
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(dir)) {
+      return dir;
+    }
+  }
+  return null;
+}
+
+export async function syncReportCode(config: RevOpsConfig): Promise<SyncResult> {
+  const reportDir = findReportDir();
+  if (!reportDir) {
+    return { success: false, message: "Could not find report template workspace" };
+  }
+
+  const reportFiles = readComponentFiles(reportDir);
+  if (Object.keys(reportFiles).length === 0) {
+    return { success: false, message: "No .tsx or .ts files found in component/ directory" };
+  }
+
+  const payload: ComponentPayload = {
+    runner_id: config.runnerId,
+    user_id: config.userId,
+    project_type: "report",
+    component_files: reportFiles,
   };
 
   const url = `${config.backendUrl}/api/admin/cde/sync-code`;

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { loadConfig, RevOpsConfig } from "./config";
-import { syncCode, syncComponentCode, syncPageCode, SyncResult } from "./codeSync";
+import { syncCode, syncComponentCode, syncPageCode, syncReportCode, SyncResult } from "./codeSync";
 
 let config: RevOpsConfig | null = null;
 let lastSyncResult: SyncResult | null = null;
@@ -46,6 +46,8 @@ async function handleSync() {
     result = await syncPageCode(config);
   } else if (config.projectType === "component") {
     result = await syncComponentCode(config);
+  } else if (config.projectType === "report") {
+    result = await syncReportCode(config);
   } else {
     result = await syncCode(config);
   }

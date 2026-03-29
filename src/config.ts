@@ -6,7 +6,7 @@ export interface RevOpsConfig {
   authToken: string;
   runnerId: string;
   userId: string;
-  projectType: "process" | "component" | "page";
+  projectType: "process" | "component" | "page" | "report";
 }
 
 const CONFIG_PATHS = [
